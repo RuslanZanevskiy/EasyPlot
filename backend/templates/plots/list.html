@@ -1,0 +1,14 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Explore{% endblock %}
+
+{% block content %}
+<div class="container">
+    <ul>
+        {% for object in object_list %}
+            <a href="{% url 'plots:detail' object.pk %}"><li>{{ object.title }}</li></a>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+

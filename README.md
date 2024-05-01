@@ -1,2 +1,3 @@
 # EasyPlot
-Web site for easy plotting written in python django.
+Web site with quick templates for plotting and coding. 
+Written in python using django.
