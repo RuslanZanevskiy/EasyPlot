@@ -1,5 +1,8 @@
 from typing import Any
 
+import math
+
+from django.http import Http404
 from django.db.models.query import QuerySet
 from django.forms import BaseModelForm
 from django.http import HttpRequest, HttpResponse
@@ -26,7 +29,7 @@ class PlotDetailView(DetailView):
     model = Plot
     template_name = 'plots/detail.html'
 
-
+    
 class PlotDeleteView(LoginRequiredMixin, DeleteView):
     model = Plot
     success_url = reverse_lazy('plots:list')
@@ -83,8 +86,42 @@ class PlotUpdateUserView(LoginRequiredMixin, UpdateView):
     model = User
 
 
-class PlotProfileView(ListView):
-    pass
+class PlotProfileView(LoginRequiredMixin, DetailView):
+    template_name = 'registration/profile.html'
+    model = User
+
+    def get_queryset(self):
+        qs = super(PlotProfileView, self).get_queryset()
+        return qs.filter(pk=self.request.user.pk)
+
+    def get_object(self, queryset=None):
+        if queryset is None:
+            queryset = self.get_queryset()
+
+        try:
+            # Get the single item from the filtered queryset
+            obj = queryset.get()
+        except queryset.model.DoesNotExist:
+            raise Http404(
+                ("No %(verbose_name)s found matching the query")
+                % {"verbose_name": queryset.model._meta.verbose_name}
+            )
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        plots = Plot.objects.filter(author=self.object)
+        n = 3
+        rows = []
+        index = 0
+        for i in range(math.ceil(len(plots)//n)+1):
+            rows.append(plots[index:index+n])
+            index += n
+
+        context['my_plots'] = rows
+        return context
+
 
 class PlotLikedView(ListView):
     pass
+    #TODO

@@ -1,0 +1,27 @@
+{% extends 'main/base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>My Profile</h2>
+    <br>
+    <p>{{object.first_name}} {{object.last_name}}</p>
+    <p>@{{object.username}}</p>
+    <p>{{object.email}}</p>
+    <p>{{object.date_joined}}</p>
+    <br>
+    <h3>My plots:</h3>
+    {% for row in my_plots %}
+        <div class="row">
+            {% for plot in row %}
+                <div class="col-sm">
+                    <a href="{% url 'plots:detail' plot.pk %}"><h4>{{plot.title}}</h4></a>
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+
