@@ -1,0 +1,7 @@
+<div class="container">
+    <a href="{% url 'plots:detail' object.pk %}">
+        <img class="img-thumbnail rounded img-fluid" src="{{ object.main_image.url }}" alt="">
+        <p class="fs-5">{{ object.title }}</p>
+    </a>
+</div>
+

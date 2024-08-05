@@ -13,7 +13,7 @@ class Plot(models.Model):
     description = models.CharField(max_length=4000)
     code = models.TextField()
     likes = models.IntegerField(default=0)
-    main_image = models.ImageField(blank=True, null=True, upload_to='plot_images')
+    main_image = models.ImageField(blank=True, upload_to='plot_images', default='default_plot.png')
     
 
     def get_absolute_url(self):

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Iterable, List 
 
 import math
 
@@ -19,10 +19,27 @@ from django.views.generic import (
 from .models import Plot
 
 
+
+def rowify_plots(plots: List | QuerySet, rows=3) -> Iterable:
+    rowed_plots = []
+    index = 0
+    for _ in range(math.ceil(len(plots)//rows)+1):
+        rowed_plots.append(plots[index:index+rows])
+        index += rows  
+
+    return rowed_plots
+
+
 class PlotListView(ListView):
     model = Plot
     template_name = 'plots/list.html'
     paginate_by = 9
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['object_list'] = rowify_plots(self.get_queryset()) 
+        return context
+
 
 
 class PlotDetailView(DetailView):
@@ -89,6 +106,7 @@ class PlotUpdateUserView(LoginRequiredMixin, UpdateView):
 class PlotProfileView(LoginRequiredMixin, DetailView):
     template_name = 'registration/profile.html'
     model = User
+    context_object_name = 'me'
 
     def get_queryset(self):
         qs = super(PlotProfileView, self).get_queryset()
@@ -110,15 +128,8 @@ class PlotProfileView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        plots = Plot.objects.filter(author=self.object)
-        n = 3
-        rows = []
-        index = 0
-        for i in range(math.ceil(len(plots)//n)+1):
-            rows.append(plots[index:index+n])
-            index += n
-
-        context['my_plots'] = rows
+        qs = Plot.objects.filter(author=self.object)
+        context['object_list'] = rowify_plots(qs) 
         return context
 
 

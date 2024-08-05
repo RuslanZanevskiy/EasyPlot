@@ -4,20 +4,23 @@
 
 {% block content %}
 <div class="container">
-    <h2>{{ object.title }}</h2>
-    <h4>Created by {{ object.author.username }}</h4>
+    <h1>{{ object.title }}</h1>
+    <h6>Created by {{ object.author.username }}</h6>
+    <img class="img-thumbnail rounded img-fluid" src="{{ object.main_image.url }}" alt="">
+    <h2>{{ object.descripton }}</h2>
 
+    <code>{{ object.code }}</code>
 
+    <br>
 
     {% if user.is_authenticated and user == object.author %}
-        <button type="button">
-            <a href="{% url 'plots:update' object.pk %}">Update</a>
-        </button>
-
-        <form action="{% url 'plots:delete' object.pk %}" method="post">
-            {% csrf_token %}
-            <button type="submit">Delete</button>
-        </form>
+    <form action="{% url 'plots:delete' object.pk %}" method="post">
+    {% csrf_token %}
+        <div class="btn-group" role="group" aria-label="Basic functions">
+            <a class="btn btn-warning" href="{% url 'plots:update' object.pk %}">Update</a>
+            <button class="btn btn-danger" type="submit">Delete</button>
+        </div>
+    </form>
     {% endif %}
 </div>
 {% endblock %}

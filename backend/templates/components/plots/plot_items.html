@@ -1,0 +1,14 @@
+<div class="container">
+    <ul>
+        {% for row in object_list %}
+            <div class="row">
+                {% for object in row %}
+                    <div class="col-sm-4">
+                        {% include 'components/plots/plot_item.html' %} 
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </ul>
+</div>
+
