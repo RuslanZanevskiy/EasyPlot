@@ -6,15 +6,18 @@
 <div class="container">
     <h2>My Profile</h2>
     <br>
-    <p>{{me.first_name}} {{me.last_name}}</p>
-    <p>@{{me.username}}</p>
-    <p>{{me.email}}</p>
-    <p>{{me.date_joined}}</p>
-    <br>
-    <h3>My plots:</h3>
+    <p>{{object.first_name}} {{object.last_name}}</p>
+    <p>@{{object.username}}</p>
+    <p>{{object.email}}</p>
+    <p>{{object.date_joined}}</p>
 
-    {% include 'components/plots/plot_items.html' %}
+    <a class="mb-3 btn btn-primary" href="{% url 'plots:myplots' %}">My plots</a>
+    <a class="mb-3 btn btn-primary" href="{% url 'plots:liked' %}">My favorite plots</a>
 
+    <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button class="btn btn-danger" type="submit">Logout</button>
+    </form>
 </div>
 {% endblock %}
 

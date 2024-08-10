@@ -7,21 +7,27 @@
     <h1>{{ object.title }}</h1>
     <h6>Created by {{ object.author.username }}</h6>
     <img class="img-thumbnail rounded img-fluid" src="{{ object.main_image.url }}" alt="">
-    <h2>{{ object.descripton }}</h2>
 
-    <code>{{ object.code }}</code>
+    {{ object.description|linebreaks }}
+
+    <code>{{ object.code|linebreaksbr }}</code>
 
     <br>
+
+    {% if my_favorite %}
+        {% include 'components/plots/unlike_button.html' %}
+    {% else %}
+        {% include 'components/plots/like_button.html' %}
+    {% endif %}
 
     {% if user.is_authenticated and user == object.author %}
     <form action="{% url 'plots:delete' object.pk %}" method="post">
     {% csrf_token %}
-        <div class="btn-group" role="group" aria-label="Basic functions">
-            <a class="btn btn-warning" href="{% url 'plots:update' object.pk %}">Update</a>
-            <button class="btn btn-danger" type="submit">Delete</button>
-        </div>
+            <a class="mt-3 btn btn-warning" href="{% url 'plots:update' object.pk %}">Update</a>
+            <button class="mt-3 btn btn-danger" type="submit">Delete</button>
     </form>
     {% endif %}
+
 </div>
 {% endblock %}
 

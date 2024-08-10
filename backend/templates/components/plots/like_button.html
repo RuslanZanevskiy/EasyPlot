@@ -1,0 +1,6 @@
+<form action="{% url 'plots:like' object.pk %}" method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-block btn-primary"><b>Like</b></button>
+</form>
+
+

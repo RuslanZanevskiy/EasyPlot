@@ -8,8 +8,12 @@ from .views import (
     PlotUpdateView,
     PlotSignupView,
     PlotProfileView,
-    PlotLikedView,
     PlotUpdateUserView,
+    PlotMyPlots,
+
+    PlotLikedView,
+    plot_like,
+    plot_unlike,
 )
 
 
@@ -21,8 +25,14 @@ urlpatterns = [
     path('<int:pk>/delete', PlotDeleteView.as_view(), name='delete'), 
     path('<int:pk>/update', PlotUpdateView.as_view(), name='update'), 
     path('new', PlotCreateView.as_view(), name='create'), 
+
     path('signup', PlotSignupView.as_view(), name='signup'),
     path('update_info', PlotUpdateUserView.as_view(), name='update_user'),
+
     path('profile', PlotProfileView.as_view(), name='profile'),
+    path('myplots', PlotMyPlots.as_view(), name='myplots'),
+
+    path('<int:pk>/like', plot_like, name='like'),
+    path('<int:pk>/unlike', plot_unlike, name='unlike'),
     path('liked', PlotLikedView.as_view(), name='liked'),
 ]

@@ -2,10 +2,13 @@ from typing import Any, Iterable, List
 
 import math
 
+from django.contrib.auth.decorators import login_required 
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from django.db.models.query import QuerySet
 from django.forms import BaseModelForm
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseBase
+from django.shortcuts import get_object_or_404, redirect
 
 from django.contrib.auth.models import User 
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
@@ -16,7 +19,7 @@ from django.views.generic import (
     ListView, DetailView, CreateView, DeleteView, UpdateView
 )
 
-from .models import Plot
+from .models import Plot, Like
 
 
 
@@ -46,6 +49,22 @@ class PlotDetailView(DetailView):
     model = Plot
     template_name = 'plots/detail.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        try:
+            if self.request.user is None:
+                print(1)
+                raise ObjectDoesNotExist
+            _ = Like.objects.get(user=self.request.user, plot=self.object)
+            print(2)
+        except ObjectDoesNotExist:
+            context['my_favorite'] = False
+        else:
+            context['my_favorite'] = True 
+
+        return context
+
     
 class PlotDeleteView(LoginRequiredMixin, DeleteView):
     model = Plot
@@ -54,8 +73,8 @@ class PlotDeleteView(LoginRequiredMixin, DeleteView):
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().filter(author=self.request.user)
     
-    def dispatch(self, request: HttpRequest, 
-                 *args: Any, **kwargs: Any) -> HttpResponse:
+    def dispatch(self, request: HttpRequest,
+                 *args: Any, **kwargs: Any) -> HttpResponseBase:
         if request.user.is_authenticated:
             if self.get_object().author != request.user:
                 return self.handle_no_permission()
@@ -83,7 +102,7 @@ class PlotUpdateView(LoginRequiredMixin, UpdateView):
         return super().get_queryset().filter(author=self.request.user)
 
     def dispatch(self, request: HttpRequest,
-                 *args: Any, **kwargs: Any) -> HttpResponse:
+                 *args: Any, **kwargs: Any) -> HttpResponseBase:
         if request.user.is_authenticated:
             if self.get_object().author != request.user:
                 return self.handle_no_permission()
@@ -106,7 +125,6 @@ class PlotUpdateUserView(LoginRequiredMixin, UpdateView):
 class PlotProfileView(LoginRequiredMixin, DetailView):
     template_name = 'registration/profile.html'
     model = User
-    context_object_name = 'me'
 
     def get_queryset(self):
         qs = super(PlotProfileView, self).get_queryset()
@@ -126,13 +144,46 @@ class PlotProfileView(LoginRequiredMixin, DetailView):
             )
         return obj
 
+class PlotMyPlots(LoginRequiredMixin, ListView):
+    model = Plot
+    template_name = 'plots/myplots.html'
+    paginate_by = 9
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        qs = Plot.objects.filter(author=self.object)
+        qs = Plot.objects.filter(author=self.request.user)
         context['object_list'] = rowify_plots(qs) 
         return context
 
+@login_required
+def plot_like(request: HttpRequest, pk: int) -> HttpResponse:
+    plot = get_object_or_404(Plot, pk=pk) 
+    new_like = Like.objects.create(user=request.user, plot=plot)
+    new_like.save()
+    return redirect('plots:detail', pk=pk) 
 
-class PlotLikedView(ListView):
-    pass
-    #TODO
+
+@login_required
+def plot_unlike(request: HttpRequest, pk: int) -> HttpResponse:
+    plot = get_object_or_404(Plot, pk=pk) 
+    Like.objects.filter(user=request.user, plot=plot).delete()
+    return redirect('plots:detail', pk=pk) 
+
+
+class PlotLikedView(LoginRequiredMixin, ListView):
+    model = Like
+    template_name = 'plots/liked.html'
+    paginate_by = 9
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        plots = []
+        likes = list(self.get_queryset())
+        for like in likes:
+            plots.append(like.plot) 
+
+        context['object_list'] = rowify_plots(plots)
+        return context
