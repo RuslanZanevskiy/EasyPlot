@@ -2,6 +2,7 @@ from typing import Any, Iterable, List
 
 import math
 
+from django.db.models import Q
 from django.contrib.auth.decorators import login_required 
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
@@ -10,7 +11,7 @@ from django.forms import BaseModelForm
 from django.http import HttpRequest, HttpResponse, HttpResponseBase
 from django.shortcuts import get_object_or_404, redirect
 
-from django.contrib.auth.models import User 
+from django.contrib.auth.models import AnonymousUser, User 
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 
@@ -52,16 +53,14 @@ class PlotDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        try:
-            if self.request.user is None:
-                print(1)
-                raise ObjectDoesNotExist
-            _ = Like.objects.get(user=self.request.user, plot=self.object)
-            print(2)
-        except ObjectDoesNotExist:
+        if self.request.user is None or self.request.user.is_anonymous:
             context['my_favorite'] = False
         else:
-            context['my_favorite'] = True 
+            try:
+                _ = Like.objects.get(user=self.request.user, plot=self.object)
+                context['my_favorite'] = True 
+            except ObjectDoesNotExist:
+                context['my_favorite'] = False 
 
         return context
 
@@ -158,8 +157,9 @@ class PlotMyPlots(LoginRequiredMixin, ListView):
 @login_required
 def plot_like(request: HttpRequest, pk: int) -> HttpResponse:
     plot = get_object_or_404(Plot, pk=pk) 
-    new_like = Like.objects.create(user=request.user, plot=plot)
-    new_like.save()
+    if not Like.objects.filter(Q(user=request.user) & Q(plot=plot)).exists(): 
+        new_like = Like.objects.create(user=request.user, plot=plot)
+        new_like.save()
     return redirect('plots:detail', pk=pk) 
 
 
