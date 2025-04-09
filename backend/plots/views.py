@@ -24,12 +24,10 @@ from .models import Plot, Like
 
 
 
-def rowify_plots(plots: List | QuerySet, rows=3) -> Iterable:
+def rowify_plots(plots: List | QuerySet, columns=3) -> Iterable:
     rowed_plots = []
-    index = 0
-    for _ in range(math.ceil(len(plots)//rows)+1):
-        rowed_plots.append(plots[index:index+rows])
-        index += rows  
+    for index in range(0, len(plots), columns):
+        rowed_plots.append(plots[index:index+columns])
 
     return rowed_plots
 
