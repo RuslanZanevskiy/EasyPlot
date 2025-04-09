@@ -154,16 +154,24 @@ class PlotMyPlots(LoginRequiredMixin, ListView):
 @login_required
 def plot_like(request: HttpRequest, pk: int) -> HttpResponse:
     plot = get_object_or_404(Plot, pk=pk) 
+    
     if not Like.objects.filter(Q(user=request.user) & Q(plot=plot)).exists(): 
         new_like = Like.objects.create(user=request.user, plot=plot)
         new_like.save()
+        plot.likes += 1
+        plot.save()
     return redirect('plots:detail', pk=pk) 
 
 
 @login_required
 def plot_unlike(request: HttpRequest, pk: int) -> HttpResponse:
     plot = get_object_or_404(Plot, pk=pk) 
-    Like.objects.filter(user=request.user, plot=plot).delete()
+
+    like = Like.objects.filter(user=request.user, plot=plot)
+    if like.exists():
+        like.delete()
+        plot.likes -= 1
+        plot.save()
     return redirect('plots:detail', pk=pk) 
 
 
