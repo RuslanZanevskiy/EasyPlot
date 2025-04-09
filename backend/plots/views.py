@@ -1,6 +1,6 @@
-from typing import Any, Iterable, List 
+from typing import Any, Iterable, List
 
-import math
+from django.core.paginator import Page
 
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required 
@@ -11,7 +11,7 @@ from django.forms import BaseModelForm
 from django.http import HttpRequest, HttpResponse, HttpResponseBase
 from django.shortcuts import get_object_or_404, redirect
 
-from django.contrib.auth.models import AnonymousUser, User 
+from django.contrib.auth.models import User 
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 
@@ -24,7 +24,7 @@ from .models import Plot, Like
 
 
 
-def rowify_plots(plots: List | QuerySet, columns=3) -> Iterable:
+def rowify_plots(plots: List | QuerySet | Page, columns=3) -> Iterable:
     rowed_plots = []
     for index in range(0, len(plots), columns):
         rowed_plots.append(plots[index:index+columns])
@@ -39,9 +39,8 @@ class PlotListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['object_list'] = rowify_plots(self.get_queryset()) 
+        context['object_list'] = rowify_plots(context['page_obj']) 
         return context
-
 
 
 class PlotDetailView(DetailView):
